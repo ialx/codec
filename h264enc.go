@@ -33,7 +33,7 @@ import (
 		m->ctx->height = m->w;
 		m->ctx->bit_rate = m->bitrate;
 		m->ctx->pix_fmt = m->pixfmt;
-		m->ctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
+		m->ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 		m->f = av_frame_alloc();
 		return avcodec_open2(m->ctx, m->c, NULL);
 	}
