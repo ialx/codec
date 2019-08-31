@@ -4,6 +4,7 @@ package codec
 import (
 
 	/*
+	#cgo LDFLAGS: -lavcodec -lavutil -lavformat
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <stdint.h>
@@ -26,14 +27,14 @@ import (
 	} h264enc_t;
 
 	static int h264enc_new(h264enc_t *m) {
-		m->c = avcodec_find_encoder(CODEC_ID_H264);
+		m->c = avcodec_find_encoder(AV_CODEC_ID_H264);
 		m->ctx = avcodec_alloc_context3(m->c);
 		m->ctx->width = m->w;
 		m->ctx->height = m->w;
 		m->ctx->bit_rate = m->bitrate;
 		m->ctx->pix_fmt = m->pixfmt;
 		m->ctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
-		m->f = avcodec_alloc_frame();
+		m->f = av_frame_alloc();
 		return avcodec_open2(m->ctx, m->c, NULL);
 	}
 
@@ -66,11 +67,11 @@ func NewH264Encoder(
 	m.Pixfmt = pixfmt
 	switch pixfmt {
 	case image.YCbCrSubsampleRatio444:
-		m.m.pixfmt = C.PIX_FMT_YUV444P
+		m.m.pixfmt = C.AV_PIX_FMT_YUV444P
 	case image.YCbCrSubsampleRatio422:
-		m.m.pixfmt = C.PIX_FMT_YUV422P
+		m.m.pixfmt = C.AV_PIX_FMT_YUV422P
 	case image.YCbCrSubsampleRatio420:
-		m.m.pixfmt = C.PIX_FMT_YUV420P
+		m.m.pixfmt = C.AV_PIX_FMT_YUV420P
 	}
 	for _, opt := range opts {
 		a := strings.Split(opt, ",")

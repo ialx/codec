@@ -3,6 +3,7 @@ package codec
 
 import (
 	/*
+	#cgo LDFLAGS: -lavcodec -lavutil
 	#include <libavcodec/avcodec.h>
 	#include <libavutil/avutil.h>
 	#include <string.h>
@@ -16,9 +17,9 @@ import (
 	} aacdec_t ;
 
 	static int aacdec_new(aacdec_t *m, uint8_t *buf, int len) {
-		m->c = avcodec_find_decoder(CODEC_ID_AAC);
+		m->c = avcodec_find_decoder(AV_CODEC_ID_AAC);
 		m->ctx = avcodec_alloc_context3(m->c);
-		m->f = avcodec_alloc_frame();
+		m->f = av_frame_alloc();
 		m->ctx->extradata = buf;
 		m->ctx->extradata_size = len;
 		m->ctx->debug = 0x3;
@@ -27,12 +28,37 @@ import (
 	}
 
 	static int aacdec_decode(aacdec_t *m, uint8_t *data, int len) {
+		int ret;
 		AVPacket pkt;
 		av_init_packet(&pkt);
 		pkt.data = data;
 		pkt.size = len;
 		av_log(m->ctx, AV_LOG_DEBUG, "decode %p\n", m);
-		return avcodec_decode_audio4(m->ctx, m->f, &m->got, &pkt);
+
+		ret = avcodec_receive_frame(m->ctx, m->f);
+		if (ret == 0) {
+		    m->got = 1;
+		}
+		if (ret == AVERROR(EAGAIN)) {
+		    ret = 0;
+		}
+
+		if (ret == 0) {
+		    ret = avcodec_send_packet(m->ctx, &pkt);
+		}
+		if (ret == AVERROR(EAGAIN)) {
+		    ret = 0;
+		}
+		else if (ret < 0)
+		{
+		    //Debug(3, "codec/audio: audio decode error: %1 (%2)\n",av_make_error_string(error, sizeof(error), ret),m->got);
+		    return ret;
+		}
+		else {
+		    ret = pkt.size;
+		}
+
+		return ret;
 	}
 	*/
 	"C"

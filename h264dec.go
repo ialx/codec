@@ -3,6 +3,7 @@ package codec
 
 import (
 	/*
+	#cgo LDFLAGS: -lavcodec -lavutil -lavformat
 	#include <libavcodec/avcodec.h>
 	#include <libavformat/avformat.h>
 	#include <libavutil/avutil.h>
@@ -15,9 +16,9 @@ import (
 	} h264dec_t ;
 
 	static int h264dec_new(h264dec_t *h, uint8_t *data, int len) {
-		h->c = avcodec_find_decoder(CODEC_ID_H264);
+		h->c = avcodec_find_decoder(AV_CODEC_ID_H264);
 		h->ctx = avcodec_alloc_context3(h->c);
-		h->f = avcodec_alloc_frame();
+		h->f = av_frame_alloc();
 		h->ctx->extradata = data;
 		h->ctx->extradata_size = len;
 		h->ctx->debug = 0x3;
@@ -25,11 +26,30 @@ import (
 	}
 
 	static int h264dec_decode(h264dec_t *h, uint8_t *data, int len) {
+		int used;
 		AVPacket pkt;
 		av_init_packet(&pkt);
 		pkt.data = data;
 		pkt.size = len;
-		return avcodec_decode_video2(h->ctx, h->f, &h->got, &pkt);
+
+		if (h->ctx->codec_type == AVMEDIA_TYPE_VIDEO ||
+		     h->ctx->codec_type == AVMEDIA_TYPE_AUDIO) {
+		    used = avcodec_send_packet(h->ctx, &pkt);
+		    if (used < 0 && used != AVERROR(EAGAIN) && used != AVERROR_EOF) {
+		    } else {
+			if (used >= 0) {
+			    pkt.size = 0;
+			}
+
+			used = avcodec_receive_frame(h->ctx, h->f);
+			if (used >= 0) {
+			    h->got = 1;
+			}
+//			if (used == AVERROR(EAGAIN) || used == AVERROR_EOF)
+//				used = 0;
+		    }
+		}
+		return used;
 	}
 	*/
 	"C"
